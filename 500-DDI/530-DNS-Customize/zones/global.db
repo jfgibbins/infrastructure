@@ -1,0 +1,8 @@
+; BIND db file for common hosts across all non-root domains
+;
+; global host names
+@                       MX              10 mail
+mail                    A               127.0.0.1
+www                     A               127.0.0.1
+ftp                     A               127.0.0.1
+

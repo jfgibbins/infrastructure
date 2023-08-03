@@ -1,0 +1,14 @@
+; BIND db file for .
+$TTL 5m
+@       IN      SOA     ns1.nic.gw.     hostmaster.gw. (
+                        2023072902	; serial number YYMMDDNN
+                        1d              ; Refresh
+                        1h              ; Retry
+                        2w              ; Expire
+                        5m              ; Min TTL
+			)
+;
+                        NS              ns1.nic.ops.
+                        NS              ns2.nic.ops.
+ns1.nic.ops.            A               10.8.88.1
+ns2.nic.ops.            A               10.8.88.2

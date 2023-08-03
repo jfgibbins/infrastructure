@@ -1,0 +1,16 @@
+; BIND db file for catalog.
+
+$TTL 5m
+
+@       IN      SOA     catalog.        hostmaster.gw. (
+                        2023072901	; serial number YYMMDDNN
+                        1               ; Refresh
+                        1               ; Retry
+                        2               ; Expire
+                        5               ; Min TTL
+			)
+
+                NS      invalid.
+
+
+$ORIGIN catalog.

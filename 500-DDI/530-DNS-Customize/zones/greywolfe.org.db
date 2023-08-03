@@ -1,0 +1,6 @@
+; BIND db file for greywolfe.org.
+$INCLUDE /var/lib/bind/master/root.soa
+; dns domains
+;                        NS              ns1.nic.ops.
+;                        NS              ns2.nic.ops.
+$INCLUDE /var/lib/bind/master/global.db

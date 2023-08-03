@@ -1,0 +1,20 @@
+; BIND db file for .
+$INCLUDE /var/lib/bind/master/root.soa
+;
+; dns domains
+arpa.                   NS              ns1.nic.ops.
+arpa.                   NS              ns2.nic.ops.
+;
+; public domains
+greywolfe.org.          NS              ns1.nic.ops.
+greywolfe.org.          NS              ns2.nic.ops.
+greywolfe.family.       NS              ns1.nic.ops.
+greywolfe.family.       NS              ns2.nic.ops.
+;
+; private domains
+dev.                    NS              ns1.nic.ops.
+dev.                    NS              ns2.nic.ops.
+gw.                     NS              ns1.nic.ops.
+gw.                     NS              ns2.nic.ops.
+ops.                    NS              ns1.nic.ops.
+ops.                    NS              ns2.nic.ops.
