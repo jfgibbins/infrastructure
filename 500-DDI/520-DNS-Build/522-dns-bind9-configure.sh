@@ -22,7 +22,7 @@
 #     + options-named.conf
 #       - options-public-facing-dynamic-interfaces-named.conf (if dynamic IP)
 #       - options-bastion-named.conf
-#     + primariess-named.conf
+#     + primaries-named.conf
 #     + servers-named.conf
 #     + statistics-named.conf
 #     + trust-anchors-named.conf
@@ -208,8 +208,10 @@ options {
     version "Wolfe DNS, eh?";
     server-id none;
 
-    recursion no;
-    interface-interval 120;
+# move to authoritative/forwarding
+#    recursion no;
+# default 60m not needed, set to 0 if need be
+#    interface-interval 120;
 
     managed-keys-directory "${MANAGED_KEYS_DIRSPEC}";
     dump-file "${DUMP_CACHE_FILESPEC}";
@@ -221,53 +223,59 @@ options {
     statistics-file "${INSTANCE_STATS_NAMED_CONF_FILESPEC}";
 
     // RNDC ACL
-    allow-new-zones no;
+# I use rndc
+#    allow-new-zones no;
 
-    // conform to RFC1035
-    auth-nxdomain no;
+# default
+#    // conform to RFC1035
+#    auth-nxdomain no;
 
-    disable-algorithms "." {
-        RSAMD5;   // 1
-        DH;       // 2 - current standard
-        DSA;      // DSA/SHA1
-        4;        // reserved
-        RSASHA1;  // RSA/SHA-1
-        6;        // DSA-NSEC3-SHA1
-        7;        // RSASHA1-NSEC3-SHA1
-        //        // RSASHA256;  // 8 - current standard
-        9;        // reserved
-        //        // RSASHA512;  // 10 - ideal standard
-        11;       // reserved
-        12;       // ECC-GOST; // GOST-R-34.10-2001
-        //        // ECDSAP256SHA256; // 13 - best standard
-        //        // ECDSAP384SHA384; // 14 - bestest standard
-        //        // ED25519; // 15
-        //        // ED448; // 16
-        INDIRECT;
-        PRIVATEDNS;
-        PRIVATEOID;
-        255;
-            };
-    //  Delegation Signer Digest Algorithms [DNSKEY-IANA] [RFC7344]
-    //  https://tools.ietf.org/id/draft-ietf-dnsop-algorithm-update-01.html
-    disable-ds-digests "egbert.net" {
-        0;        // 0
-        SHA-1;    // 1 - Must deprecate
-        //        // SHA-256; // Widespread use
-        GOST;     // 3 - has been deprecated by RFC6986
-        //        // SHA-384;  // 4 - Recommended
-        };
-    // disables the SHA-256 digest for .net TLD only.
-    disable-ds-digests "net" { "SHA-256"; };  // TBS: temporary
+# move to recursive, need to research if current appropriate settings have changed
+#    disable-algorithms "." {
+#        RSAMD5;   // 1
+#        DH;       // 2 - current standard
+#        DSA;      // DSA/SHA1
+#        4;        // reserved
+#        RSASHA1;  // RSA/SHA-1
+#        6;        // DSA-NSEC3-SHA1
+#        7;        // RSASHA1-NSEC3-SHA1
+#        //        // RSASHA256;  // 8 - current standard
+#        9;        // reserved
+#        //        // RSASHA512;  // 10 - ideal standard
+#        11;       // reserved
+#        12;       // ECC-GOST; // GOST-R-34.10-2001
+#        //        // ECDSAP256SHA256; // 13 - best standard
+#        //        // ECDSAP384SHA384; // 14 - bestest standard
+#        //        // ED25519; // 15
+#        //        // ED448; // 16
+#        INDIRECT;
+#        PRIVATEDNS;
+#        PRIVATEOID;
+#        255;
+#            };
+#    //  Delegation Signer Digest Algorithms [DNSKEY-IANA] [RFC7344]
+#    //  https://tools.ietf.org/id/draft-ietf-dnsop-algorithm-update-01.html
+#    disable-ds-digests "egbert.net" {
+#        0;        // 0
+#        SHA-1;    // 1 - Must deprecate
+#        //        // SHA-256; // Widespread use
+#        GOST;     // 3 - has been deprecated by RFC6986
+#        //        // SHA-384;  // 4 - Recommended
+#        };
+#    // disables the SHA-256 digest for .net TLD only.
+#    disable-ds-digests "net" { "SHA-256"; };  // TBS: temporary
 
-    dnssec-accept-expired no;
-    dnssec-validation yes;
-    transfer-format many-answers;
-    allow-query { none; };
-    allow-transfer { none; };
-    allow-update { none; };  # we edit zone file by using an editor, not 'rndc'
-    allow-notify { none; };
-    forwarders { };
+# default
+#    dnssec-accept-expired no;
+#    dnssec-enable yes;
+#    dnssec-validation yes;
+#    transfer-format many-answers;
+# move to server type
+#    allow-query { none; };
+#    allow-transfer { none; };
+#    allow-update { none; };  # we edit zone file by using an editor, not 'rndc'
+#    allow-notify { none; };
+#    forwarders { };
 
     key-directory "${INSTANCE_KEYS_DB_DIRSPEC}";
     max-transfer-time-in 60;
@@ -302,7 +310,8 @@ create_header "${INSTANCE_STATS_NAMED_CONF_FILESPEC}" \
 create_header "${INSTANCE_TRUST_ANCHORS_NAMED_CONF_FILESPEC}" \
     "${USER_NAME}:$GROUP_NAME" 0640 "'trust anchors' clauses"
 
-cat << TRUSTED_ANCHORS_EOF | tee -a "${BUILDROOT}${CHROOT_DIR}$INSTANCE_TRUSTED_ANCHORS_NAMED_CONF_FILESPEC" > /dev/null
+# including default bind keys in config
+cat << TRUSTED_ANCHORS_EOF | tee -a "${BUILDROOT}${CHROOT_DIR}$INSTANCE_TRUST_ANCHORS_NAMED_CONF_FILESPEC" > /dev/null
 trust-anchors {
         # This key (20326) was published in the root zone in 2017.
         . initial-key 257 3 8 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3
@@ -313,6 +322,7 @@ trust-anchors {
                 RUfhHdY6+cn8HFRm+2hM8AnXGXws9555KrUB5qihylGa8subX2Nn6UwN
                 R1AkUTV74bU=";
 };
+
 TRUSTED_ANCHORS_EOF
 
 # /etc/bind/views-named.conf
@@ -403,6 +413,33 @@ BIND_EOF
   flex_chown "root:root" "$FILESPEC"
   flex_chmod "0644"      "$FILESPEC"
   echo "Created $BUILDROOT$CHROOT_DIR$FILESPEC"
+
+
+echo "Creating a temporary directory under '/run' for ISC Bind 'named'"
+echo
+
+ETC_TMPFILESD_DIRSPEC="/etc/tmpfiles.d"
+
+FILENAME="${systemd_unitname}.conf"
+FILESPEC=${ETC_TMPFILESD_DIRSPEC}/${FILENAME}
+echo "Modifying ${BUILDROOT}${CHROOT_DIR}$FILESPEC..."
+cat << BIND_EOF | tee -a "${BUILDROOT}${CHROOT_DIR}$FILESPEC" >/dev/null
+d  /run/named/${INSTANCE}  0750   ${USER_NAME}     ${GROUP_NAME}     -   -
+BIND_EOF
+flex_chown "root:root" "$FILESPEC"
+flex_chmod "0644"      "$FILESPEC"
+
+if [ "$FILE_SETTING_PERFORM" == "true" ] \
+   || [ "$UID" -eq 0 ]; then
+  echo "Activating $FILESPEC tmpfile subdirectory ..."
+  systemd-tmpfiles "$FILESPEC" --create
+  retsts=$?
+  if [ $retsts -ne 0 ]; then
+    echo "Error in $FILESPEC tmpdir; errno ${retsts}; aborted."
+    exit $retsts
+  fi
+fi
+
 fi
 
 echo

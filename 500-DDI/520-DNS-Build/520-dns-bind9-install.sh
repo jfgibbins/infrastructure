@@ -73,14 +73,16 @@ echo "Purging initial DNS config"
 echo
 
 rm -rf /etc/bind/*
-rm -rf /etc/systemd/system/na*
+rm -rf /etc/systemd/system/named*
+rm -rf /etc/tmpfiles.d/named*
 rm -rf /var/cache/bind/*
 rm -rf /var/lib/bind/*
 rm -rf /var/log/named/*
 
-cp bind.keys /etc/bind/bind.keys
-flex_chown bind:bind "/etc/bind/bind.keys"
-flex_chmod 0640      "/etc/bind/bind.keys"
+# added to trust-anchors using init mode
+#cp bind.keys /etc/bind/bind.keys
+#flex_chown bind:bind "/etc/bind/bind.keys"
+#flex_chmod 0640      "/etc/bind/bind.keys"
 
 echo
 echo "Done."
